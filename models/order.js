@@ -11,7 +11,9 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Order.init({},
+  Order.init({
+    UserId:DataTypes.INTEGER
+  },
     {
       sequelize,
       modelName: "Order",

@@ -15,6 +15,7 @@ app.use((req, res, next) => {
 app.use("/products", require("./routes/products"));
 app.use("/categories", require("./routes/categories"));
 app.use("/users", require("./routes/users"));
+app.use("/orders", require("./routes/orders"));
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {

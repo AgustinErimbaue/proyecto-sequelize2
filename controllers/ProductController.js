@@ -110,6 +110,30 @@ const ProductController = {
         .send({ message: "no ha sido posible eliminar el producto" });
     }
   },
+  async create(req, res) {
+    try {
+      const { name, description, price, CategoryId } = req.body;
+
+  
+      if (!name || !description || !price || !CategoryId) {
+        return res.status(400).send({ error: "Todos los campos son requeridos" });
+      }
+
+      
+      const newProduct = await Product.create({
+        name,
+        description,
+        price,
+        CategoryId,
+      });
+
+      res.status(201).send({ message: "Producto creado exitosamente", product: newProduct });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: "Error al crear el producto" });
+    }
+  },
 };
+
 
 module.exports = ProductController;

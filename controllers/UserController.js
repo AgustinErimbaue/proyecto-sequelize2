@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
-const { User } = require("../models/index");
+const { User, Token, Order, Product } = require("../models/index");
 const jwt = require("jsonwebtoken");
+const { jwt_secret } = require("../config/config.json")["development"];
 
 const UserController = {
   async register(req, res) {
@@ -30,29 +31,31 @@ const UserController = {
   },
 
   async login(req, res) {
-    try {
-      const { email, password } = req.body;
-
-      const user = await User.findOne({ where: { email } });
-
-      if (!user) {
-        return res.status(404).send({ error: "Usuario no encontrado" });
-      }
-
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        return res.status(401).send({ error: "Contraseña incorrecta" });
-      }
-
-      const token = jwt.sign({ userId: user.id }, "your-secret-key", {
-        expiresIn: "1h",
+    User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    })
+      .then((user) => {
+        if (!user) {
+          return res
+            .status(400)
+            .send({ message: "Usuario o contraseña incorrectos" });
+        }
+        const isMatch = bcrypt.compareSync(req.body.password, user.password);
+        if (!isMatch) {
+          return res
+            .status(400)
+            .send({ message: "Usuario o contraseña incorrectos" });
+        }
+        let token = jwt.sign({ id: user.id }, jwt_secret);
+        Token.create({ token, UserId: user.id });
+        res.send({ message: "Bienvenid@ " + user.name, user, token });
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send({ error: "Error al iniciar sesión" });
       });
-
-      res.status(200).send({ token });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send({ error: "Error al iniciar sesión" });
-    }
   },
 
   async getUserWithOrdersAndProducts(req, res) {
@@ -72,11 +75,26 @@ const UserController = {
       res.status(200).send(userWithOrdersAndProducts);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          error: "Error al obtener la información del usuario y sus pedidos",
-        });
+      res.status(500).send({
+        error: "Error al obtener la información del usuario y sus pedidos",
+      });
+    }
+  },
+  async logout(req, res) {
+    try {
+      const user = req.user;
+
+      
+      await Token.destroy({
+        where: {
+          UserId: user.id,
+        },
+      });
+
+      res.status(200).send({ message: "Logout exitoso" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: "Error al realizar el logout" });
     }
   },
 };

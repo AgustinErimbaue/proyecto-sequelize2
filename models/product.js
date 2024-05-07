@@ -9,7 +9,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Product.belongsTo(models.Category);
-      
+      Product.belongsToMany(models.Order, {
+        through: models.ProductOrder,
+      });
     }
   }
   Product.init(

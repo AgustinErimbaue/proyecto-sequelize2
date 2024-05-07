@@ -81,6 +81,17 @@ const CategoryController = {
       res.status(500).send(error);
     }
   },
+  async getAllWithProducts(req, res) {
+    try {
+      const categories = await Category.findAll({
+        include: [Product],
+      });
+      res.send({ msg: "Todas las categorías con sus productos", categories });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: "Error al obtener las categorías con productos" });
+    }
+  },
 };
 
 module.exports = CategoryController;

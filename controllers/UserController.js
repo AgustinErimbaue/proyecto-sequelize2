@@ -28,6 +28,7 @@ const UserController = {
       res.status(500).send({ error: "Error al registrar usuario" });
     }
   },
+
   async login(req, res) {
     try {
       const { email, password } = req.body;
@@ -53,29 +54,29 @@ const UserController = {
       res.status(500).send({ error: "Error al iniciar sesión" });
     }
   },
-  async login(req, res) {
+
+  async getUserWithOrdersAndProducts(req, res) {
     try {
-      const { email, password } = req.body;
+      const userId = req.user.id; // Suponiendo que la información del usuario está disponible en req.user después de la autenticación con JWT
 
-      const user = await User.findOne({ where: { email } });
-
-      if (!user) {
-        return res.status(404).send({ error: "Usuario no encontrado" });
-      }
-
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        return res.status(401).send({ error: "Contraseña incorrecta" });
-      }
-
-      const token = jwt.sign({ userId: user.id }, "your-secret-key", {
-        expiresIn: "48h",
+      // Obtener la información del usuario con sus pedidos y productos asociados
+      const userWithOrdersAndProducts = await User.findByPk(userId, {
+        include: [
+          {
+            model: Order,
+            include: [Product],
+          },
+        ],
       });
 
-      res.status(200).send({ token });
+      res.status(200).send(userWithOrdersAndProducts);
     } catch (error) {
       console.error(error);
-      res.status(500).send({ error: "Error al iniciar sesión" });
+      res
+        .status(500)
+        .send({
+          error: "Error al obtener la información del usuario y sus pedidos",
+        });
     }
   },
 };

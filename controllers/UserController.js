@@ -8,6 +8,10 @@ const UserController = {
     try {
       const { name, email, password } = req.body;
 
+      if (!name || !email || !password) {
+        return res.status(400).send({ error: "Todos los campos son obligatorios" });
+      }
+
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
         return res.status(400).send({ error: "El usuario ya existe" });
@@ -60,9 +64,7 @@ const UserController = {
 
   async getUserWithOrdersAndProducts(req, res) {
     try {
-      const userId = req.user.id; // Suponiendo que la información del usuario está disponible en req.user después de la autenticación con JWT
-
-      // Obtener la información del usuario con sus pedidos y productos asociados
+      const userId = req.user.id; 
       const userWithOrdersAndProducts = await User.findByPk(userId, {
         include: [
           {
